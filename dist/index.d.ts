@@ -76,4 +76,17 @@ export declare function isCanonicalSlug(value: string): value is PlatformSlug;
 export declare function isAppSlug(value: string): value is AppSlug;
 /** Type guard: is this slug a platform Engine (service component)? */
 export declare function isEngineSlug(value: string): value is EngineSlug;
+/**
+ * UPPERCASE_UNDERSCORE stable routing identifier for Event.sourceApp,
+ * Journey.appSource, Message.appSource, CommunicationTemplate.sourceApp,
+ * Document.sourceApp, ApiKey.appSource, OAuthApp.appSource, App.appSourceKey.
+ *
+ * Derived mechanically from APP_SLUGS — any change to APP_SLUGS propagates
+ * automatically. See DISCOVERED-EVENT-SOURCEAPP-FORMAT-WAR-041826.md §8
+ * for the decision history (A-013 resolution — Option B).
+ */
+type Replace<S extends string, From extends string, To extends string> = S extends `${infer L}${From}${infer R}` ? `${L}${To}${Replace<R, From, To>}` : S;
+export type SourceAppIdentifier = Uppercase<Replace<AppSlug, "-", "_">>;
+export declare function toSourceAppIdentifier(slug: AppSlug): SourceAppIdentifier;
+export {};
 //# sourceMappingURL=index.d.ts.map

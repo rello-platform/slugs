@@ -166,3 +166,6 @@ export function isAppSlug(value) {
 export function isEngineSlug(value) {
     return ENGINE_SLUGS.includes(value);
 }
+export function toSourceAppIdentifier(slug) {
+    return slug.toUpperCase().replace(/-/g, "_");
+}
