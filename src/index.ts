@@ -184,15 +184,23 @@ export function isEngineSlug(value: string): value is EngineSlug {
  * Journey.appSource, Message.appSource, CommunicationTemplate.sourceApp,
  * Document.sourceApp, ApiKey.appSource, OAuthApp.appSource, App.appSourceKey.
  *
- * Derived mechanically from APP_SLUGS — any change to APP_SLUGS propagates
- * automatically. See DISCOVERED-EVENT-SOURCEAPP-FORMAT-WAR-041826.md §8
- * for the decision history (A-013 resolution — Option B).
+ * Derived mechanically from PLATFORM_SLUGS — covers BOTH consumer apps
+ * (AppSlug) AND platform engines (EngineSlug), because engines legitimately
+ * write routing identifiers too: Journey Engine posts to Rello `/api/events`
+ * with `sourceApp: "JOURNEY_ENGINE"`, ApiKey admin creates keys with
+ * `appSource: "MILO_ENGINE"` / `"CONTENT_ENGINE"` / `"PROPERTY_ENGINE"`.
+ * Any APP_SLUGS or ENGINE_SLUGS change propagates to this type automatically.
+ *
+ * See DISCOVERED-EVENT-SOURCEAPP-FORMAT-WAR-041826.md §8 for the decision
+ * history (A-013 resolution — Option B). v0.3.1 widened the type from
+ * AppSlug-only to PlatformSlug after the post-commit microscopic re-audit
+ * surfaced engine-identifier producers that v0.3.0 would have rejected.
  */
 type Replace<S extends string, From extends string, To extends string> =
   S extends `${infer L}${From}${infer R}` ? `${L}${To}${Replace<R, From, To>}` : S;
 
-export type SourceAppIdentifier = Uppercase<Replace<AppSlug, "-", "_">>;
+export type SourceAppIdentifier = Uppercase<Replace<PlatformSlug, "-", "_">>;
 
-export function toSourceAppIdentifier(slug: AppSlug): SourceAppIdentifier {
+export function toSourceAppIdentifier(slug: PlatformSlug): SourceAppIdentifier {
   return slug.toUpperCase().replace(/-/g, "_") as SourceAppIdentifier;
 }
