@@ -1,7 +1,7 @@
 {
   "name": "@rello-platform/slugs",
-  "version": "0.1.0",
-  "description": "Canonical app slug registry for the Rello platform.",
+  "version": "0.2.0",
+  "description": "Canonical platform slug registry for the Rello ecosystem — consumer apps + service engines.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist", "src", "README.md", "LICENSE"],
