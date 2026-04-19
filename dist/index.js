@@ -84,6 +84,7 @@ export const LEGACY_ALIASES = {
     open_house: "open-house-hub",
     open_house_hub: "open-house-hub",
     "the-open-house-hub": "open-house-hub",
+    "open-house": "open-house-hub",
     // home-ready
     homeready: "home-ready",
     home_ready: "home-ready",
@@ -97,6 +98,7 @@ export const LEGACY_ALIASES = {
     home_scout: "home-scout",
     "the-home-scout": "home-scout",
     thehomescout: "home-scout",
+    scout: "home-scout",
     // the-oven
     the_oven: "the-oven",
     oven: "the-oven",
@@ -107,6 +109,7 @@ export const LEGACY_ALIASES = {
     // newsletter-studio
     newsletterstudio: "newsletter-studio",
     newsletter_studio: "newsletter-studio",
+    newsletter: "newsletter-studio",
     // market-intel
     marketintel: "market-intel",
     market_intel: "market-intel",
@@ -117,6 +120,7 @@ export const LEGACY_ALIASES = {
     // pathfinder-pro
     pathfinderpro: "pathfinder-pro",
     pathfinder_pro: "pathfinder-pro",
+    pathfinder: "pathfinder-pro",
     // milo-engine (kept from PR 1 baseline)
     miloengine: "milo-engine",
     milo_engine: "milo-engine",
@@ -124,6 +128,10 @@ export const LEGACY_ALIASES = {
     // content-engine (kept from PR 1 baseline)
     contentengine: "content-engine",
     content_engine: "content-engine",
+    // property-engine
+    propertyengine: "property-engine",
+    // journey-engine
+    journeyengine: "journey-engine",
     // NO neighborhood-intel aliases — not a canonical slug.
     // Rello-internal origins
     manual: "rello",
