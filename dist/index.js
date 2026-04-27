@@ -177,3 +177,30 @@ export function isEngineSlug(value) {
 export function toSourceAppIdentifier(slug) {
     return slug.toUpperCase().replace(/-/g, "_");
 }
+/**
+ * Platform System Tenant — singleton canonical identifier for system-context
+ * inter-app calls (cron-driven, portal-without-real-tenant, notification-helper,
+ * fallback) into tenant-scoped Milo Engine endpoints (`/api/decide`,
+ * `/api/chat`, `/api/personalize`, `/api/outcome`, etc.) when no real
+ * end-user tenant is in scope.
+ *
+ * Resolves to a real `Tenant` row in Rello's prod DB
+ * (`id="tenant_rello_platform"`, `name="Rello Platform"`, `type=PLATFORM`,
+ * `isSystemTenant=true`, `status=ACTIVE`) seeded via
+ * `~/Rello/prisma/migrate-platform-tenant.ts` →
+ * `ensurePlatformTenant(prisma)` (idempotent `prisma.tenant.upsert`).
+ *
+ * Use as the `tenantId` field on outbound Milo Engine calls in genuinely
+ * no-tenant flows. Forbidden alternatives: legacy spoke-name literals
+ * (`"homestretch"`, `"newsletter"`, etc.); spoke `APP_SLUG` literals
+ * (e.g. `"home-stretch"`); parallel system-tenant identifiers like
+ * `tenant_platform_system`. See `~/.claude/CLAUDE.md` § "Platform System
+ * Tenant Convention" for the full guidance including the
+ * real-tenant-but-no-lead exception.
+ *
+ * Singleton today; the `isSystemTenant=true` flag admits multiplicity if a
+ * future workstream needs per-purpose system tenants.
+ *
+ * Provenance: PA-054 Phase B.A (2026-04-27).
+ */
+export const PLATFORM_TENANT_ID = "tenant_rello_platform";
