@@ -22,8 +22,14 @@
  * Consumer-facing apps. Mirror of Rello's `public."App"` table rows.
  * Each has a tenant-entitlement feature key, a plan-features membership,
  * and (for the embeddable ones) a /apps/{slug}/* proxy route.
+ *
+ * - arive: LOS-side integration partner (Mortgage Loan Origination
+ *   System). Inbound-only via Zapier-mediated webhooks; no /apps/arive
+ *   proxy route — surfaces are owned by Rello Closing Co-Pilot.
+ *   Added v0.5.0 per CLOSING-COPILOT-ARIVE-INTEGRATION spec G-14.
  */
 export const APP_SLUGS = [
+    "arive",
     "rello",
     "harvest-home",
     "home-ready",

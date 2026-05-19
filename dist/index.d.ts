@@ -22,8 +22,13 @@
  * Consumer-facing apps. Mirror of Rello's `public."App"` table rows.
  * Each has a tenant-entitlement feature key, a plan-features membership,
  * and (for the embeddable ones) a /apps/{slug}/* proxy route.
+ *
+ * - arive: LOS-side integration partner (Mortgage Loan Origination
+ *   System). Inbound-only via Zapier-mediated webhooks; no /apps/arive
+ *   proxy route — surfaces are owned by Rello Closing Co-Pilot.
+ *   Added v0.5.0 per CLOSING-COPILOT-ARIVE-INTEGRATION spec G-14.
  */
-export declare const APP_SLUGS: readonly ["rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro"];
+export declare const APP_SLUGS: readonly ["arive", "rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro"];
 /**
  * Platform service engines. Not consumer-facing apps; not in Rello's
  * App table. Identified by slug for service-to-service auth headers
@@ -42,7 +47,7 @@ export declare const APP_SLUGS: readonly ["rello", "harvest-home", "home-ready",
  */
 export declare const ENGINE_SLUGS: readonly ["milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine"];
 /** Every canonical slug in the ecosystem. Derived; do not hand-maintain. */
-export declare const PLATFORM_SLUGS: readonly ["rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro", "milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine"];
+export declare const PLATFORM_SLUGS: readonly ["arive", "rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro", "milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine"];
 export type AppSlug = (typeof APP_SLUGS)[number];
 export type EngineSlug = (typeof ENGINE_SLUGS)[number];
 export type PlatformSlug = AppSlug | EngineSlug;
