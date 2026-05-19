@@ -4,12 +4,19 @@
   "description": "Canonical platform slug registry for the Rello ecosystem — consumer apps + service engines.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "src", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
     "typescript": "^5.4.0"
   },
   "repository": {
