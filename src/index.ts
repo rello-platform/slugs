@@ -55,8 +55,8 @@ export const APP_SLUGS = [
  *   signal-emitter.ts:23 with X-App-Source: "property-engine")
  * - journey-engine: workflow automation (live; Rello dispatches events
  *   to JE today, no outbound slug header yet — included for future-proofing)
- * - report-engine: reporting pipeline (not yet slug-emitting; included
- *   for future-proofing per ecosystem authoritative list 2026-04-18)
+ * - report-engine: reporting pipeline (confirmed emits via
+ *   signal_emitter.py:39 with X-App-Source: "report-engine")
  * - drumbeat-video-engine: Drumbeat video generation (not yet slug-emitting;
  *   included for future-proofing)
  */
