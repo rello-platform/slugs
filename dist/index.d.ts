@@ -40,8 +40,8 @@ export declare const APP_SLUGS: readonly ["arive", "rello", "harvest-home", "hom
  *   signal-emitter.ts:23 with X-App-Source: "property-engine")
  * - journey-engine: workflow automation (live; Rello dispatches events
  *   to JE today, no outbound slug header yet — included for future-proofing)
- * - report-engine: reporting pipeline (not yet slug-emitting; included
- *   for future-proofing per ecosystem authoritative list 2026-04-18)
+ * - report-engine: reporting pipeline (confirmed emits via
+ *   signal_emitter.py:39 with X-App-Source: "report-engine")
  * - drumbeat-video-engine: Drumbeat video generation (not yet slug-emitting;
  *   included for future-proofing)
  */
@@ -69,10 +69,47 @@ export declare const CANONICAL_SET: ReadonlySet<PlatformSlug>;
  */
 export declare const LEGACY_ALIASES: Readonly<Record<string, PlatformSlug>>;
 /**
+ * Silent probe: normalize any raw slug string to canonical form, returning
+ * null when it does not resolve. Identical resolution to `normalizeSlug()`
+ * but NEVER emits a warning — use this when a miss is an expected, handled
+ * outcome (multi-candidate probing, optional headers, best-effort mapping)
+ * and the caller does its own reporting.
+ *
+ * Resolution order (LOAD-BEARING — do not reorder):
+ *   1. canonical set          — the slug is already canonical
+ *   2. LEGACY_ALIASES         — an explicitly-mapped drifted variant
+ *   3. underscore fold        — `_` → `-`, re-checked against the canonical set
+ *
+ * Step 2 MUST precede step 3. Several aliases map to a target that is NOT
+ * their hyphenated spelling (`rello_crm` / `inbound_sms` / `inbound_email` /
+ * `inbound_call` → `rello`; `open_house` → `open-house-hub`); the explicit
+ * mapping has to win before any mechanical transform gets a look.
+ *
+ * Step 3 exists because `toSourceAppIdentifier()` (below, in this same file)
+ * defines UPPER_SNAKE routing identifiers as a mechanical `-`→`_` uppercase
+ * of the canonical slug — so the inverse fold is a bijection this package
+ * already owns. Every `ApiKey.appSource` / `ApiKey.targetApp` /
+ * `Event.sourceApp` value is such an identifier. Folding here (rather than
+ * enumerating each UPPER_SNAKE form in LEGACY_ALIASES) means a NEW app or
+ * engine added to APP_SLUGS / ENGINE_SLUGS is covered automatically, with
+ * no second edit and no chance of the two lists drifting apart.
+ *
+ * The fold is deliberately narrow: it only accepts a result that is already
+ * in CANONICAL_SET, so genuinely unknown input (`neighborhood-intel`,
+ * `daily_plan`, `FUB`) still resolves to null. No canonical slug contains an
+ * underscore, so the fold can never shadow a canonical value.
+ */
+export declare function tryNormalizeSlug(raw: string | null | undefined): PlatformSlug | null;
+/**
  * Normalize any raw slug string to canonical form. Returns null when
  * the input is missing, empty, or refers to a non-platform origin
  * (including `neighborhood-intel`, which is a Property Engine feature
  * not a platform slug).
+ *
+ * Resolution is `tryNormalizeSlug()`; this wrapper adds the console warning
+ * on an unrecognized-but-present value. Missing / empty / whitespace-only
+ * input returns null SILENTLY (an absent value is not a drift signal).
+ * Prefer `tryNormalizeSlug()` when a miss is expected and handled.
  */
 export declare function normalizeSlug(raw: string | null | undefined): PlatformSlug | null;
 /** Type guard for any canonical platform slug (apps + engines). */

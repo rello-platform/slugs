@@ -1,6 +1,6 @@
 {
   "name": "@rello-platform/slugs",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Canonical platform slug registry for the Rello ecosystem — consumer apps + service engines.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,12 +12,14 @@
   ],
   "scripts": {
     "build": "tsc",
+    "test": "tsc -p tsconfig.test.json --noEmit && vitest run",
     "prepublishOnly": "npm run build",
     "prepare": "husky || true"
   },
   "devDependencies": {
     "husky": "^9.1.7",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.10"
   },
   "repository": {
     "type": "git",
