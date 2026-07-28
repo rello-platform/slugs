@@ -192,10 +192,20 @@ export function tryNormalizeSlug(raw) {
     const aliased = LEGACY_ALIASES[lowered];
     if (aliased)
         return aliased;
-    // 3. UPPER_SNAKE / snake_case routing identifier → canonical slug
+    // 3. UPPER_SNAKE / snake_case routing identifier → canonical slug.
+    //    The folded spelling is run through BOTH lookups, in the same order as
+    //    steps 1-2. Checking CANONICAL_SET alone is not enough: four alias keys
+    //    are hyphenated but NOT canonical, so their underscore spellings
+    //    (THE_HOME_SCOUT, THE_HOME_STRETCH, THE_OPEN_HOUSE_HUB, OPEN_HOUSE) would
+    //    fall through to null and force callers back into the hand-rolled
+    //    hyphenate-and-retry this fold exists to delete.
     const folded = lowered.replace(/_/g, "-");
-    if (folded !== lowered && CANONICAL_SET.has(folded)) {
-        return folded;
+    if (folded !== lowered) {
+        if (CANONICAL_SET.has(folded))
+            return folded;
+        const foldedAlias = LEGACY_ALIASES[folded];
+        if (foldedAlias)
+            return foldedAlias;
     }
     return null;
 }

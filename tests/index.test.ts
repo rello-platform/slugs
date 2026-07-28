@@ -356,4 +356,43 @@ describe("normalizeSlug / tryNormalizeSlug parity", () => {
     // Nothing in the resolving corpus may warn.
     expect(warnCalls()).toEqual([]);
   });
+
+  describe("underscore fold reaches LEGACY_ALIASES, not just CANONICAL_SET", () => {
+    // Regression: v0.6.0's fold consulted CANONICAL_SET only, so alias keys that
+    // are hyphenated-but-not-canonical failed from their underscore spelling.
+    // Caught by Rello's routing-identifier + mlo-partner-proxy suites.
+    const HYPHENATED_ALIAS_KEYS = Object.keys(LEGACY_ALIASES).filter(
+      (k) => k.includes("-") && !CANONICAL_SET.has(k as PlatformSlug),
+    );
+
+    test("has at least one hyphenated non-canonical alias key (guards the table)", () => {
+      expect(HYPHENATED_ALIAS_KEYS.length).toBeGreaterThan(0);
+    });
+
+    test.each(HYPHENATED_ALIAS_KEYS)(
+      "%s resolves identically from its underscore spelling",
+      (aliasKey) => {
+        const target = LEGACY_ALIASES[aliasKey];
+        const underscored = aliasKey.replace(/-/g, "_");
+        expect(tryNormalizeSlug(underscored)).toBe(target);
+        expect(tryNormalizeSlug(underscored.toUpperCase())).toBe(target);
+        expect(normalizeSlug(underscored.toUpperCase())).toBe(target);
+      },
+    );
+
+    test("the four known drifted routing identifiers fold to canonical", () => {
+      expect(tryNormalizeSlug("THE_HOME_SCOUT")).toBe("home-scout");
+      expect(tryNormalizeSlug("THE_HOME_STRETCH")).toBe("home-stretch");
+      expect(tryNormalizeSlug("THE_OPEN_HOUSE_HUB")).toBe("open-house-hub");
+      expect(tryNormalizeSlug("OPEN_HOUSE")).toBe("open-house-hub");
+    });
+
+    test("step 2 still wins over the fold for divergent aliases", () => {
+      // rello_crm is an alias key in its OWN underscore form; it must resolve
+      // via step 2, never via a fold to the non-existent "rello-crm".
+      expect(tryNormalizeSlug("rello_crm")).toBe(LEGACY_ALIASES["rello_crm"]);
+      expect(tryNormalizeSlug("inbound_sms")).toBe(LEGACY_ALIASES["inbound_sms"]);
+    });
+  });
+
 });
