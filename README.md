@@ -12,12 +12,13 @@ npm install "github:rello-platform/slugs"
 
 ```ts
 import {
-  APP_SLUGS,          // consumer apps (11) — mirror of Rello's App table
+  APP_SLUGS,          // consumer apps (12) — mirror of Rello's App table
   ENGINE_SLUGS,       // service engines (6) — no App table row
-  PLATFORM_SLUGS,     // union of both (17) — derived
+  PLATFORM_SLUGS,     // union of both (18) — derived
   CANONICAL_SET,
   LEGACY_ALIASES,
   normalizeSlug,
+  tryNormalizeSlug,
   isCanonicalSlug,
   isAppSlug,
   isEngineSlug,
@@ -35,12 +36,16 @@ const engine: EngineSlug = "property-engine";
 // Type-safe any-platform-slug identifier:
 const origin: PlatformSlug = "milo-engine";
 
-// Normalize any legacy / mixed-case input:
+// Normalize any legacy / mixed-case / UPPER_SNAKE input:
 normalizeSlug("HomeReady");         // → "home-ready"
 normalizeSlug("the-home-scout");    // → "home-scout"
 normalizeSlug("property-engine");   // → "property-engine"
+normalizeSlug("PROPERTY_ENGINE");   // → "property-engine"  (routing identifier folds back)
 normalizeSlug("neighborhood-intel");// → null (NOT a platform slug — Property Engine feature)
-normalizeSlug("FUB");                // → null (non-platform origin)
+normalizeSlug("FUB");                // → null (non-platform origin) + console.warn
+
+// Same resolution, no warning — use when a miss is expected and handled:
+tryNormalizeSlug("FUB");             // → null (silent)
 
 // Type guards:
 if (isCanonicalSlug(value)) { /* value is PlatformSlug */ }
@@ -52,18 +57,37 @@ if (isEngineSlug(value))    { /* value is EngineSlug */ }
 
 | Export | Kind | Count | Use when |
 |---|---|---|---|
-| `APP_SLUGS` | `readonly string[]` | 11 | Indexing App-table rows, tenant entitlements, plan features, spoke embed routes |
+| `APP_SLUGS` | `readonly string[]` | 12 | Indexing App-table rows, tenant entitlements, plan features, spoke embed routes |
 | `ENGINE_SLUGS` | `readonly string[]` | 6 | Signal-router origin classification, engine-specific service-to-service auth |
-| `PLATFORM_SLUGS` | `readonly string[]` | 17 | Any allow-list accepting either apps or engines (e.g., X-App-Source header validation) |
+| `PLATFORM_SLUGS` | `readonly string[]` | 18 | Any allow-list accepting either apps or engines (e.g., X-App-Source header validation) |
 | `AppSlug` | `type` | — | Narrow "this is a consumer app" type |
 | `EngineSlug` | `type` | — | Narrow "this is a service engine" type |
 | `PlatformSlug` | `type` | — | Union — anything valid in the ecosystem |
-| `normalizeSlug` | `(raw) => PlatformSlug \| null` | — | Canonicalize any inbound slug string; unknown → null + loud-warn |
+| `normalizeSlug` | `(raw) => PlatformSlug \| null` | — | Canonicalize any inbound slug string; unrecognized → null + loud-warn |
+| `tryNormalizeSlug` | `(raw) => PlatformSlug \| null` | — | Identical resolution, **never warns** — use when a miss is expected and handled |
 | `isCanonicalSlug` | type guard | — | Runtime "is this a known platform slug?" |
 | `isAppSlug` | type guard | — | Runtime "is this a consumer app?" |
 | `isEngineSlug` | type guard | — | Runtime "is this a service engine?" |
 | `LEGACY_ALIASES` | `Record<string, PlatformSlug>` | — | Drifted-variant → canonical mapping, consumed by `normalizeSlug` |
-| `CANONICAL_SET` | `ReadonlySet<PlatformSlug>` | 17 | Fast `.has()` check (pre-populated from `PLATFORM_SLUGS`) |
+| `CANONICAL_SET` | `ReadonlySet<PlatformSlug>` | 18 | Fast `.has()` check (pre-populated from `PLATFORM_SLUGS`) |
+
+## Slug resolution — how `normalizeSlug` / `tryNormalizeSlug` decide
+
+Both functions share one resolution body. `normalizeSlug` adds a `console.warn` when a **present but unrecognized** value fails to resolve; `tryNormalizeSlug` is silent. Missing / empty / whitespace-only input returns `null` silently from both — an absent value is not a drift signal.
+
+Resolution order (**load-bearing — do not reorder**):
+
+1. **Canonical set** — the trimmed, lowercased input is already a `PlatformSlug`.
+2. **`LEGACY_ALIASES`** — an explicitly-mapped drifted variant (`homeready`, `the-home-scout`, `drumbeat`, …).
+3. **Underscore fold** — `_` → `-`, accepted only if the result is in `CANONICAL_SET`.
+
+Step 3 is what makes UPPER_SNAKE **routing identifiers** resolve. `toSourceAppIdentifier(slug)` defines a routing identifier as a mechanical `-`→`_` uppercase of the canonical slug, so the inverse fold is a bijection this package already owns — every `ApiKey.appSource` / `ApiKey.targetApp` / `Event.sourceApp` / `Journey.appSource` value round-trips back to its slug. Because it is derived rather than enumerated, **a new app or engine added to `APP_SLUGS` / `ENGINE_SLUGS` is covered automatically** — no second edit, no chance of the two lists drifting apart.
+
+Step 2 must precede step 3: several aliases map to a target that is *not* their hyphenated spelling — `rello_crm`, `inbound_sms`, `inbound_email`, `inbound_call` → `rello`, and `open_house` → `open-house-hub`. The explicit mapping has to win before any mechanical transform gets a look.
+
+The fold is deliberately narrow — it only accepts a result already in `CANONICAL_SET`, so genuinely unknown input (`neighborhood-intel`, `daily_plan`, `FUB`) still resolves to `null`. No canonical slug contains an underscore, so the fold can never shadow a canonical value.
+
+Do **not** work around a miss by adding an UPPER_SNAKE form to `LEGACY_ALIASES`, and do not hand-roll a `_`→`-` retry in a consumer — both re-introduce the drift the fold exists to remove.
 
 ## `neighborhood-intel` is NOT a platform slug
 
