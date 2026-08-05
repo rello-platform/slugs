@@ -1,7 +1,7 @@
 {
   "name": "@rello-platform/slugs",
   "version": "0.6.1",
-  "description": "Canonical platform slug registry for the Rello ecosystem — consumer apps + service engines.",
+  "description": "Canonical platform slug registry for the Rello ecosystem \u2014 consumer apps + service engines.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -14,7 +14,7 @@
     "build": "tsc",
     "test": "tsc -p tsconfig.test.json --noEmit && vitest run",
     "prepublishOnly": "npm run build",
-    "prepare": "husky || true"
+    "prepare": "husky || true; git config core.hooksPath .husky || true"
   },
   "devDependencies": {
     "husky": "^9.1.7",
