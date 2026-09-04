@@ -13,6 +13,11 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The manifest gate compares against the newest v* tag STRICTLY BELOW
+          # the one being pushed. Default depth-1 fetches no tags at all, so the
+          # gate would find no baseline and exit 2 UNVERIFIED on every release.
+          fetch-depth: 0
 
       - name: Verify tag matches package.json version
         run: |
@@ -23,6 +28,25 @@ jobs:
             exit 1
           fi
           echo "Tag ↔ package.json version match: ${GITHUB_REF_NAME} = v${PKG_VERSION}"
+
+      # -- tag gate, pre-publish ------------------------------------------
+      # The same gate the pre-push hook runs, fed the SAME stdin shape, so the
+      # two can never disagree -- the principle the version-tag check above
+      # already follows.
+      #
+      # This is genuine PRE-PUBLISH enforcement for the two packages that
+      # actually publish to a registry. The other seven ship by git tag only,
+      # so a bad tag there is inert until a consumer pins it; the post-hoc
+      # detector covers those.
+      #
+      # Requires exit 0: STALE blocks, UNVERIFIED blocks, a regressed or
+      # unresolvable manifest blocks. No "|| true" anywhere.
+      - name: Tag gate - dist freshness + manifest regression
+        run: |
+          SHA=$(git rev-parse HEAD)
+          printf 'refs/tags/%s %s refs/tags/%s %s\n' \
+            "${GITHUB_REF_NAME}" "$SHA" "${GITHUB_REF_NAME}" "$SHA" \
+            | npx --yes "github:rello-platform/scripts#v0.11.0" tag-dist-gate
 
       - uses: actions/setup-node@v4
         with:
