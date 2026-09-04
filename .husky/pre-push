@@ -94,5 +94,5 @@ echo "[pre-push] All checks passed."
 # One implementation, in @rello-platform/scripts. Requires exit 0: STALE blocks
 # and UNVERIFIED blocks too. No `|| true`.
 if printf '%s\n' "$_dist_gate_refs" | grep -q 'refs/tags/'; then
-  printf '%s\n' "$_dist_gate_refs" | npx --yes "github:rello-platform/scripts#v0.8.0" tag-dist-gate
+  printf '%s\n' "$_dist_gate_refs" | npx --yes "github:rello-platform/scripts#v0.10.0" tag-dist-gate
 fi
