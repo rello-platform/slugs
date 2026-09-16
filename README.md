@@ -117,7 +117,7 @@ Do **not** work around a miss by adding an UPPER_SNAKE form to `LEGACY_ALIASES`,
 This package is consumed via `github:` install (not published to npm). The compiled `dist/` output is **committed to the repo** so consumers don't need to run a build step at install time. Rebuild before commit:
 
 ```bash
-npm run build
+npm run compile
 git add dist
 ```
 
