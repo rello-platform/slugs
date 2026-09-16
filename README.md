@@ -126,3 +126,7 @@ git add dist
 - `~/.claude/CLAUDE.md` — canonical slug table and forbidden-variants list.
 - `SPOKE-SLUG-CANONICAL-ALIGNMENT-ARCHITECTURE-041726.md` — the 12-PR rollout plan this package anchors.
 - `SPOKE-SLUG-ALIGNMENT-PR-01-AMEND-DESIGN-B-041826-DONE.md` — the companion for the 0.1.0 → 0.2.0 amendment that split APP_SLUGS + ENGINE_SLUGS and removed `neighborhood-intel`.
+
+## Contributor setup
+
+After cloning, run `npm run hooks` once to wire the husky hooks (`core.hooksPath .husky`). This used to be the `prepare` script; C-33 (2026-09-16) moved it off the `prepare` name because npm runs a nested, lockfile-less install inside every git dependency whose manifest carries `prepare` (or `build`), and one such install failed two app builds on a registry blip.
