@@ -46,7 +46,7 @@ jobs:
           SHA=$(git rev-parse HEAD)
           printf 'refs/tags/%s %s refs/tags/%s %s\n' \
             "${GITHUB_REF_NAME}" "$SHA" "${GITHUB_REF_NAME}" "$SHA" \
-            | npx --yes "github:rello-platform/scripts#v0.11.0" tag-dist-gate
+            | npx --yes "github:rello-platform/scripts#v0.20.0" tag-dist-gate
 
       - uses: actions/setup-node@v4
         with:
@@ -55,7 +55,7 @@ jobs:
 
       - run: npm ci
 
-      - run: npm run build
+      - run: npm run compile
 
       - run: npm publish
         env:
