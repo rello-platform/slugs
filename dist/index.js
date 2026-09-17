@@ -41,6 +41,12 @@ export const APP_SLUGS = [
     "the-drumbeat",
     "open-house-hub",
     "pathfinder-pro",
+    // prequal-pro: consumer-facing pre-qualification app (its own repo,
+    // PreQual-Pro). Emits document-upload / signal traffic to Rello with
+    // sourceApp "prequal-pro" / "PREQUAL_PRO". Added v0.8.0 (C-49) — it had a
+    // Rello App row and emitters but was missing from this registry, which forced
+    // Rello's document-upload receiver to hand-roll a bridge for it (A-107).
+    "prequal-pro",
 ];
 /**
  * Platform service engines. Not consumer-facing apps; not in Rello's
@@ -127,6 +133,11 @@ export const LEGACY_ALIASES = {
     pathfinderpro: "pathfinder-pro",
     pathfinder_pro: "pathfinder-pro",
     pathfinder: "pathfinder-pro",
+    // prequal-pro (the concatenated / camelCase spellings the spoke sends —
+    // "PreQualPro"/"PREQUALPRO" fold to "prequalpro"; the underscore form
+    // "prequal_pro" is also covered by the step-3 fold, but is listed for parity)
+    prequalpro: "prequal-pro",
+    prequal_pro: "prequal-pro",
     // milo-engine (kept from PR 1 baseline)
     miloengine: "milo-engine",
     milo_engine: "milo-engine",

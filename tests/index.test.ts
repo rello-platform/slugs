@@ -73,8 +73,6 @@ const UNKNOWN_CORPUS: readonly string[] = [
   "neighborhood_intel",
   "totally-bogus-app",
   "FUB",
-  "prequal-pro",
-  "PREQUAL_PRO",
   "daily_plan",
   "compliance",
   "email",
@@ -110,6 +108,42 @@ describe("structural invariants", () => {
   test("PLATFORM_SLUGS is exactly APP_SLUGS + ENGINE_SLUGS with no duplicates", () => {
     expect(PLATFORM_SLUGS).toEqual([...APP_SLUGS, ...ENGINE_SLUGS]);
     expect(new Set(PLATFORM_SLUGS).size).toBe(PLATFORM_SLUGS.length);
+  });
+
+  // C-49: APP_SLUGS is exactly the 13 consumer-facing apps — the 11 canonical
+  // Rello apps (platform-slugs.md), plus `arive` (LOS integration partner,
+  // v0.5.0) and `prequal-pro` (PreQual-Pro app, v0.8.0). Red-first: before
+  // prequal-pro was added this asserted 12 and named the missing app.
+  test("APP_SLUGS is exactly the canonical 13 consumer apps (C-49)", () => {
+    expect(APP_SLUGS).toEqual([
+      "arive",
+      "rello",
+      "harvest-home",
+      "home-ready",
+      "home-stretch",
+      "home-scout",
+      "market-intel",
+      "newsletter-studio",
+      "the-oven",
+      "the-drumbeat",
+      "open-house-hub",
+      "pathfinder-pro",
+      "prequal-pro",
+    ]);
+    expect(APP_SLUGS).toHaveLength(13);
+    expect(APP_SLUGS).toContain("prequal-pro");
+  });
+
+  // C-49: prequal-pro resolves through the registry from every spelling the
+  // spoke sends — the canonical, the UPPER_SNAKE routing identifier, and the
+  // camelCase/concatenated form the document-upload receiver posts ("PreQualPro").
+  test("prequal-pro resolves from canonical, PREQUAL_PRO, and PreQualPro (C-49)", () => {
+    expect(tryNormalizeSlug("prequal-pro")).toBe("prequal-pro");
+    expect(tryNormalizeSlug("PREQUAL_PRO")).toBe("prequal-pro");
+    expect(tryNormalizeSlug("prequal_pro")).toBe("prequal-pro");
+    expect(tryNormalizeSlug("PreQualPro")).toBe("prequal-pro");
+    expect(tryNormalizeSlug("prequalpro")).toBe("prequal-pro");
+    expect(toSourceAppIdentifier("prequal-pro")).toBe("PREQUAL_PRO");
   });
 
   test("every canonical slug is lowercase-hyphenated", () => {
