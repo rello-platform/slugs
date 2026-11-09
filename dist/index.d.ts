@@ -165,6 +165,13 @@ export declare function toSourceAppIdentifier(slug: PlatformSlug): SourceAppIden
  * Provenance: PA-054 Phase B.A (2026-04-27).
  */
 export declare const PLATFORM_TENANT_ID: "tenant_rello_platform";
-export type SystemTenantId = typeof PLATFORM_TENANT_ID;
+/**
+ * Rello Growth house tenant — the per-purpose system tenant whose leads are the
+ * professionals Rello markets its own software to; its sends go out as Rello.
+ * Real `Tenant` row in Rello (`type=GROWTH`, `isSystemTenant=true`). Never use
+ * it for system-context calls: that is `PLATFORM_TENANT_ID`.
+ */
+export declare const GROWTH_HOUSE_TENANT_ID: "tenant_rello_growth";
+export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TENANT_ID;
 export {};
 //# sourceMappingURL=index.d.ts.map
