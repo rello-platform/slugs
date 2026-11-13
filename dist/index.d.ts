@@ -173,5 +173,24 @@ export declare const PLATFORM_TENANT_ID: "tenant_rello_platform";
  */
 export declare const GROWTH_HOUSE_TENANT_ID: "tenant_rello_growth";
 export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TENANT_ID;
+/**
+ * Canonical feature slugs a Rello `Plan` may grant in its `grants` column.
+ * A feature is narrower than an app: it names a part of an app a plan buys,
+ * not an App row, so it is deliberately NOT in `PLATFORM_SLUGS` and never
+ * normalizes to one.
+ *
+ * - `pfp-rates` — the Gateway Rates pages in PathfinderPro.
+ * - `pfp-full` — all of PathfinderPro, as today (includes everything
+ *   `pfp-rates` gives).
+ * - `check-your-rate` — the plan includes Check Your Rate: the existing
+ *   add-on feature, not a second entitlement.
+ *
+ * Rello's plan editor validates `grants` against this list (an off-list slug
+ * is a 400), so adding a feature is a release of this package first.
+ */
+export declare const FEATURE_SLUGS: readonly ["pfp-rates", "pfp-full", "check-your-rate"];
+export type FeatureSlug = (typeof FEATURE_SLUGS)[number];
+/** True only for an exact canonical feature slug (no trimming, no case folding, no aliases). */
+export declare function isFeatureSlug(value: unknown): value is FeatureSlug;
 export {};
 //# sourceMappingURL=index.d.ts.map
