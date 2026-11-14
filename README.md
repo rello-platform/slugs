@@ -93,6 +93,10 @@ Do **not** work around a miss by adding an UPPER_SNAKE form to `LEGACY_ALIASES`,
 
 `neighborhood-intel` is a **feature** inside Property Engine (see `Property-Engine/src/app/api/neighborhood-intel/`), not a consumer app or a standalone engine. It has no App table row, no tenant entitlement, no signal origin. `normalizeSlug("neighborhood-intel")` returns `null`, and no `LEGACY_ALIASES` entry resolves to it. If a caller tries to set `X-App-Source: neighborhood-intel` on a signal, it will be rejected by any allow-list derived from `PLATFORM_SLUGS`.
 
+## Feature slugs (`FEATURE_SLUGS`)
+
+`FEATURE_SLUGS` (`pfp-rates`, `pfp-full`, `check-your-rate`) are what a Rello `Plan.grants` may list (PFP Gateway §4.1). A feature names a part of an app a plan buys, not an App row, so feature slugs are not platform slugs and never normalize to one. Rello's plan editor refuses an off-list slug, so a new feature is a release of this package first (additive: `0.x.y` → `0.x+1.0`). Use `isFeatureSlug()` to validate input.
+
 ## Adding a new slug
 
 **New consumer app** (has an App table row, a tenant entitlement, probably a `/apps/{slug}/*` route):
