@@ -95,7 +95,7 @@ Do **not** work around a miss by adding an UPPER_SNAKE form to `LEGACY_ALIASES`,
 
 ## Feature slugs (`FEATURE_SLUGS`)
 
-`FEATURE_SLUGS` (`pfp-rates`, `pfp-full`, `check-your-rate`) are what a Rello `Plan.grants` may list (PFP Gateway §4.1). A feature names a part of an app a plan buys, not an App row, so feature slugs are not platform slugs and never normalize to one. Rello's plan editor refuses an off-list slug, so a new feature is a release of this package first (additive: `0.x.y` → `0.x+1.0`). Use `isFeatureSlug()` to validate input.
+`FEATURE_SLUGS` (`pfp-rates`, `pfp-full`, `check-your-rate`, `refi-radar`) are what a Rello `Plan.grants` may list (PFP Gateway §4.1). A feature names a part of an app a plan buys, not an App row, so feature slugs are not platform slugs and never normalize to one. Rello's plan editor refuses an off-list slug, so a new feature is a release of this package first (additive: `0.x.y` → `0.x+1.0`). Use `isFeatureSlug()` to validate input.
 
 ## Adding a new slug
 
