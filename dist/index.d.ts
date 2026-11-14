@@ -184,11 +184,14 @@ export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TEN
  *   `pfp-rates` gives).
  * - `check-your-rate` — the plan includes Check Your Rate: the existing
  *   add-on feature, not a second entitlement.
+ * - `refi-radar` — Refi Radar in PathfinderPro (PFP Gateway §4.12c): included
+ *   on Pro and Team, or bought as an add-on on Rates and Starter. PFP shows it
+ *   only to a tenant holding this grant.
  *
  * Rello's plan editor validates `grants` against this list (an off-list slug
  * is a 400), so adding a feature is a release of this package first.
  */
-export declare const FEATURE_SLUGS: readonly ["pfp-rates", "pfp-full", "check-your-rate"];
+export declare const FEATURE_SLUGS: readonly ["pfp-rates", "pfp-full", "check-your-rate", "refi-radar"];
 export type FeatureSlug = (typeof FEATURE_SLUGS)[number];
 /** True only for an exact canonical feature slug (no trimming, no case folding, no aliases). */
 export declare function isFeatureSlug(value: unknown): value is FeatureSlug;
