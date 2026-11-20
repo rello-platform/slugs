@@ -347,11 +347,21 @@ export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TEN
  * - `refi-radar` — Refi Radar in PathfinderPro (PFP Gateway §4.12c): included
  *   on Pro and Team, or bought as an add-on on Rates and Starter. PFP shows it
  *   only to a tenant holding this grant.
+ * - `pfp-signature` — one live-rate email signature in PathfinderPro: the
+ *   Rates setup (lender + comp) without the Rate Widget, which stays locked as
+ *   the upgrade to `pfp-rates` (Kelly D64, the $9 Signature plan). A tenant
+ *   holding both resolves to Rates.
  *
  * Rello's plan editor validates `grants` against this list (an off-list slug
  * is a 400), so adding a feature is a release of this package first.
  */
-export const FEATURE_SLUGS = ["pfp-rates", "pfp-full", "check-your-rate", "refi-radar"] as const;
+export const FEATURE_SLUGS = [
+  "pfp-rates",
+  "pfp-full",
+  "check-your-rate",
+  "refi-radar",
+  "pfp-signature",
+] as const;
 
 export type FeatureSlug = (typeof FEATURE_SLUGS)[number];
 

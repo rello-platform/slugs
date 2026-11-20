@@ -10,8 +10,8 @@ import {
 // PFP Gateway §4.1 (G-2): Rello's Plan.grants lists feature slugs from this one
 // canonical list, and the plan editor refuses anything else with a 400.
 describe("FEATURE_SLUGS", () => {
-  test("is exactly the four gateway features, in order", () => {
-    expect([...FEATURE_SLUGS]).toEqual(["pfp-rates", "pfp-full", "check-your-rate", "refi-radar"]);
+  test("is exactly the five gateway features, in order", () => {
+    expect([...FEATURE_SLUGS]).toEqual(["pfp-rates", "pfp-full", "check-your-rate", "refi-radar", "pfp-signature"]);
   });
 
   test("every feature slug is lowercase hyphenated and unique", () => {
@@ -74,5 +74,32 @@ describe("refi-radar (v0.11.0)", () => {
   test("narrows to FeatureSlug at the type level", () => {
     const slug: FeatureSlug = "refi-radar";
     expect(slug).toBe("refi-radar");
+  });
+});
+
+// Kelly D64 (PFP Gateway unit SIG-PLAN, 2026-11-20): the $9 Signature plan grants
+// `pfp-signature` — one live-rate email signature, the Rates setup without the
+// Rate Widget. v0.12.0 adds it; nothing else in the package changes.
+describe("pfp-signature (v0.12.0)", () => {
+  test("is a feature slug", () => {
+    expect(isFeatureSlug("pfp-signature")).toBe(true);
+    expect(FEATURE_SLUGS).toContain("pfp-signature");
+  });
+
+  test("is exact: near-misses are refused", () => {
+    for (const v of ["PFP-Signature", "PFP-SIGNATURE", "pfp_signature", "pfpsignature", " pfp-signature", "pfp-signature ", "signature", "pfp-sig"]) {
+      expect(isFeatureSlug(v)).toBe(false);
+    }
+  });
+
+  test("is not a platform slug and normalizes to none", () => {
+    const platform: readonly string[] = PLATFORM_SLUGS;
+    expect(platform).not.toContain("pfp-signature");
+    expect(tryNormalizeSlug("pfp-signature")).toBeNull();
+  });
+
+  test("narrows to FeatureSlug at the type level", () => {
+    const slug: FeatureSlug = "pfp-signature";
+    expect(slug).toBe("pfp-signature");
   });
 });
