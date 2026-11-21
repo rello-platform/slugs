@@ -63,6 +63,10 @@ export const APP_SLUGS = [
  *   signal_emitter.py:39 with X-App-Source: "report-engine")
  * - drumbeat-video-engine: Drumbeat video generation (not yet slug-emitting;
  *   included for future-proofing)
+ * - tracking-engine: the platform tracking engine (events, interest, hot
+ *   moments; Cloudflare Workers, its own Neon project). Authenticates inbound
+ *   app keys and calls Rello as TRACKING_ENGINE. Added v0.13.0
+ *   (PLATFORM-TRACKING-SYSTEM S1).
  */
 export const ENGINE_SLUGS = [
     "milo-engine",
@@ -71,6 +75,7 @@ export const ENGINE_SLUGS = [
     "journey-engine",
     "report-engine",
     "drumbeat-video-engine",
+    "tracking-engine",
 ];
 /** Every canonical slug in the ecosystem. Derived; do not hand-maintain. */
 export const PLATFORM_SLUGS = [...APP_SLUGS, ...ENGINE_SLUGS];

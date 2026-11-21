@@ -13,7 +13,7 @@ npm install "github:rello-platform/slugs"
 ```ts
 import {
   APP_SLUGS,          // consumer apps (12) — mirror of Rello's App table
-  ENGINE_SLUGS,       // service engines (6) — no App table row
+  ENGINE_SLUGS,       // service engines (7) — no App table row
   PLATFORM_SLUGS,     // union of both (18) — derived
   CANONICAL_SET,
   LEGACY_ALIASES,
@@ -58,7 +58,7 @@ if (isEngineSlug(value))    { /* value is EngineSlug */ }
 | Export | Kind | Count | Use when |
 |---|---|---|---|
 | `APP_SLUGS` | `readonly string[]` | 12 | Indexing App-table rows, tenant entitlements, plan features, spoke embed routes |
-| `ENGINE_SLUGS` | `readonly string[]` | 6 | Signal-router origin classification, engine-specific service-to-service auth |
+| `ENGINE_SLUGS` | `readonly string[]` | 7 | Signal-router origin classification, engine-specific service-to-service auth |
 | `PLATFORM_SLUGS` | `readonly string[]` | 18 | Any allow-list accepting either apps or engines (e.g., X-App-Source header validation) |
 | `AppSlug` | `type` | — | Narrow "this is a consumer app" type |
 | `EngineSlug` | `type` | — | Narrow "this is a service engine" type |

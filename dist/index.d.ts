@@ -44,10 +44,14 @@ export declare const APP_SLUGS: readonly ["arive", "rello", "harvest-home", "hom
  *   signal_emitter.py:39 with X-App-Source: "report-engine")
  * - drumbeat-video-engine: Drumbeat video generation (not yet slug-emitting;
  *   included for future-proofing)
+ * - tracking-engine: the platform tracking engine (events, interest, hot
+ *   moments; Cloudflare Workers, its own Neon project). Authenticates inbound
+ *   app keys and calls Rello as TRACKING_ENGINE. Added v0.13.0
+ *   (PLATFORM-TRACKING-SYSTEM S1).
  */
-export declare const ENGINE_SLUGS: readonly ["milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine"];
+export declare const ENGINE_SLUGS: readonly ["milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine", "tracking-engine"];
 /** Every canonical slug in the ecosystem. Derived; do not hand-maintain. */
-export declare const PLATFORM_SLUGS: readonly ["arive", "rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro", "prequal-pro", "milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine"];
+export declare const PLATFORM_SLUGS: readonly ["arive", "rello", "harvest-home", "home-ready", "home-stretch", "home-scout", "market-intel", "newsletter-studio", "the-oven", "the-drumbeat", "open-house-hub", "pathfinder-pro", "prequal-pro", "milo-engine", "content-engine", "property-engine", "journey-engine", "report-engine", "drumbeat-video-engine", "tracking-engine"];
 export type AppSlug = (typeof APP_SLUGS)[number];
 export type EngineSlug = (typeof ENGINE_SLUGS)[number];
 export type PlatformSlug = AppSlug | EngineSlug;
