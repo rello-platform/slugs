@@ -70,6 +70,8 @@ if (isEngineSlug(value))    { /* value is EngineSlug */ }
 | `isEngineSlug` | type guard | — | Runtime "is this a service engine?" |
 | `LEGACY_ALIASES` | `Record<string, PlatformSlug>` | — | Drifted-variant → canonical mapping, consumed by `normalizeSlug` |
 | `CANONICAL_SET` | `ReadonlySet<PlatformSlug>` | 18 | Fast `.has()` check (pre-populated from `PLATFORM_SLUGS`) |
+| `PLATFORM_BRAND` | frozen `as const` object | — | Any visible product name, domain, support address or logo URL (v0.14.0) |
+| `PlatformBrand` | `type` | — | The type of `PLATFORM_BRAND` |
 
 ## Slug resolution — how `normalizeSlug` / `tryNormalizeSlug` decide
 
@@ -96,6 +98,26 @@ Do **not** work around a miss by adding an UPPER_SNAKE form to `LEGACY_ALIASES`,
 ## Feature slugs (`FEATURE_SLUGS`)
 
 `FEATURE_SLUGS` (`pfp-rates`, `pfp-full`, `check-your-rate`, `refi-radar`, `pfp-signature`) are what a Rello `Plan.grants` may list (PFP Gateway §4.1). A feature names a part of an app a plan buys, not an App row, so feature slugs are not platform slugs and never normalize to one. Rello's plan editor refuses an off-list slug, so a new feature is a release of this package first (additive: `0.x.y` → `0.x+1.0`). Use `isFeatureSlug()` to validate input.
+
+## Platform brand (`PLATFORM_BRAND`)
+
+`PLATFORM_BRAND` is the one source for the product name and public addresses users see (added v0.14.0, PLATFORM-RENAME-RALLYROO Phase 2). It is a frozen `as const` object, so each field has a literal, readonly type:
+
+| Field | Value |
+|---|---|
+| `name` | `"Rallyroo"` (capital R only) |
+| `domain` | `"hellorallyroo.com"` |
+| `appUrl` | `"https://hellorallyroo.com"` (no trailing slash) |
+| `supportEmail` | `"support@hellorallyroo.com"` |
+| `logoUrl` | `"https://hellorallyroo.com/email/logos/rallyroo.png"` (the file lands with the logo work) |
+| `legacyName` | `"Rello"` — for the lint rule and redirects only; never render it |
+
+```ts
+import { PLATFORM_BRAND } from "@rello-platform/slugs";
+const shownName = tenant?.tenantName || PLATFORM_BRAND.name;
+```
+
+Never type the brand into a visible string; `platform-rules/no-legacy-brand-in-visible-text` (eslint-plugin-platform-rules) refuses it. Internal names stay "Rello": the `rello` slug in `APP_SLUGS`, the `@rello-platform` scope, `RELLO_*` env vars, `X-Rello-*` headers, DB names, logs and internal hosts.
 
 ## Adding a new slug
 
