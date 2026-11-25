@@ -203,5 +203,43 @@ export declare const FEATURE_SLUGS: readonly ["pfp-rates", "pfp-full", "check-yo
 export type FeatureSlug = (typeof FEATURE_SLUGS)[number];
 /** True only for an exact canonical feature slug (no trimming, no case folding, no aliases). */
 export declare function isFeatureSlug(value: unknown): value is FeatureSlug;
+/**
+ * The platform's public brand: the name, domain and addresses a person outside
+ * the team sees in UI text, page titles, emails, SMS and AI-written copy.
+ *
+ * Read it instead of typing the name. A tenant fallback such as
+ * `tenant?.tenantName || "Rello"` becomes `tenant?.tenantName || PLATFORM_BRAND.name`,
+ * so a later rename is one release of this package, not a sweep of every repo.
+ * The lint rule `platform-rules/no-legacy-brand-in-visible-text` refuses the name
+ * typed by hand in visible strings and points here.
+ *
+ * Internal names are NOT the brand and stay "Rello": the `rello` app slug in
+ * `APP_SLUGS`, the `@rello-platform` scope, `RELLO_*` env vars, `X-Rello-*`
+ * headers, DB tables/columns, log and error strings, and internal app-to-app
+ * hosts on hellorello.app.
+ *
+ * - `name` — the product name, spelled "Rallyroo" (capital R only; never
+ *   "RallyRoo" or "RALLYROO"). Kelly, 2026-11-24.
+ * - `domain` — the primary public domain (hellorallyroo.com, Kelly 2026-11-24).
+ * - `appUrl` — the public homepage / app origin: no trailing slash, so
+ *   `${PLATFORM_BRAND.appUrl}/pricing` joins cleanly.
+ * - `supportEmail` — the public support mailbox on the primary domain.
+ * - `logoUrl` — the absolute email-safe PNG logo. It mirrors the hub's existing
+ *   `/email/logos/rello.png` path; the file itself lands with the logo work
+ *   (spec Phase 3), so until then this URL may not resolve.
+ * - `legacyName` — the old product name. Used by the lint rule and redirects
+ *   only; never render it.
+ *
+ * Added v0.14.0 (PLATFORM-RENAME-RALLYROO Phase 2).
+ */
+export declare const PLATFORM_BRAND: Readonly<{
+    readonly name: "Rallyroo";
+    readonly domain: "hellorallyroo.com";
+    readonly appUrl: "https://hellorallyroo.com";
+    readonly supportEmail: "support@hellorallyroo.com";
+    readonly logoUrl: "https://hellorallyroo.com/email/logos/rallyroo.png";
+    readonly legacyName: "Rello";
+}>;
+export type PlatformBrand = typeof PLATFORM_BRAND;
 export {};
 //# sourceMappingURL=index.d.ts.map

@@ -335,3 +335,43 @@ const FEATURE_SET = new Set(FEATURE_SLUGS);
 export function isFeatureSlug(value) {
     return typeof value === "string" && FEATURE_SET.has(value);
 }
+// ---------------------------------------------------------------------------
+// Platform brand — the one source for the product name users see (RALLYROO Phase 2)
+// ---------------------------------------------------------------------------
+/**
+ * The platform's public brand: the name, domain and addresses a person outside
+ * the team sees in UI text, page titles, emails, SMS and AI-written copy.
+ *
+ * Read it instead of typing the name. A tenant fallback such as
+ * `tenant?.tenantName || "Rello"` becomes `tenant?.tenantName || PLATFORM_BRAND.name`,
+ * so a later rename is one release of this package, not a sweep of every repo.
+ * The lint rule `platform-rules/no-legacy-brand-in-visible-text` refuses the name
+ * typed by hand in visible strings and points here.
+ *
+ * Internal names are NOT the brand and stay "Rello": the `rello` app slug in
+ * `APP_SLUGS`, the `@rello-platform` scope, `RELLO_*` env vars, `X-Rello-*`
+ * headers, DB tables/columns, log and error strings, and internal app-to-app
+ * hosts on hellorello.app.
+ *
+ * - `name` — the product name, spelled "Rallyroo" (capital R only; never
+ *   "RallyRoo" or "RALLYROO"). Kelly, 2026-11-24.
+ * - `domain` — the primary public domain (hellorallyroo.com, Kelly 2026-11-24).
+ * - `appUrl` — the public homepage / app origin: no trailing slash, so
+ *   `${PLATFORM_BRAND.appUrl}/pricing` joins cleanly.
+ * - `supportEmail` — the public support mailbox on the primary domain.
+ * - `logoUrl` — the absolute email-safe PNG logo. It mirrors the hub's existing
+ *   `/email/logos/rello.png` path; the file itself lands with the logo work
+ *   (spec Phase 3), so until then this URL may not resolve.
+ * - `legacyName` — the old product name. Used by the lint rule and redirects
+ *   only; never render it.
+ *
+ * Added v0.14.0 (PLATFORM-RENAME-RALLYROO Phase 2).
+ */
+export const PLATFORM_BRAND = Object.freeze({
+    name: "Rallyroo",
+    domain: "hellorallyroo.com",
+    appUrl: "https://hellorallyroo.com",
+    supportEmail: "support@hellorallyroo.com",
+    logoUrl: "https://hellorallyroo.com/email/logos/rallyroo.png",
+    legacyName: "Rello",
+});
