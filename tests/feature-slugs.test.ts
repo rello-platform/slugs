@@ -10,8 +10,10 @@ import {
 // PFP Gateway §4.1 (G-2): Rello's Plan.grants lists feature slugs from this one
 // canonical list, and the plan editor refuses anything else with a 400.
 describe("FEATURE_SLUGS", () => {
-  test("is exactly the five gateway features, in order", () => {
-    expect([...FEATURE_SLUGS]).toEqual(["pfp-rates", "pfp-full", "check-your-rate", "refi-radar", "pfp-signature"]);
+  // v0.15.0 (Home Insight HI-01) appends the surface keys after these five;
+  // tests/home-insight.test.ts pins the whole list.
+  test("starts with the five gateway features, in order", () => {
+    expect(FEATURE_SLUGS.slice(0, 5)).toEqual(["pfp-rates", "pfp-full", "check-your-rate", "refi-radar", "pfp-signature"]);
   });
 
   test("every feature slug is lowercase hyphenated and unique", () => {
