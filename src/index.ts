@@ -339,6 +339,156 @@ export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TEN
 // ---------------------------------------------------------------------------
 
 /**
+ * Rello surface keys (Home Insight HI-01). Each surface of the hub app (a nav
+ * item, tab, card, Quick Actions item, settings tab) carries one key. A plan
+ * with `access = GRANTS_ONLY` opens only the surfaces whose key it grants; a
+ * FULL plan opens all of them (see `isSurfaceOpen`).
+ *
+ * - `rello-full` is the key of every surface that is not one of the named keys
+ *   below, including surfaces added later. It is never granted to a
+ *   GRANTS_ONLY plan: it is what makes "everything else shows locked" hold.
+ * - The rest name the surfaces the Home Insight plan decides on one by one
+ *   (spec RELLO-HOME-INSIGHT §4 L-13). A key here is not a grant: some exist
+ *   only so their surface shows as a locked preview (the Lead Intelligence,
+ *   Team, Audit Log and Custom Domain settings tabs).
+ *
+ * These are internal identifiers. Never render one as customer text.
+ *
+ * Added v0.15.0.
+ */
+export const RELLO_SURFACE_SLUGS = Object.freeze([
+  "rello-full",
+  "rello-dashboard",
+  "rello-today",
+  "rello-today-tasks",
+  "rello-leads-all",
+  "rello-leads-home-insight",
+  "rello-team-realtor-prospects",
+  "rello-team-performance",
+  "rello-apps-the-oven",
+  "rello-calendar",
+  "rello-settings",
+  "rello-team-settings-lead-intelligence",
+  "rello-team-settings-team",
+  "rello-team-settings-brand",
+  "rello-team-settings-billing",
+  "rello-team-settings-audit-log",
+  "rello-team-settings-custom-domain",
+  "rello-quick-action-create-lead",
+  "rello-quick-action-all-leads",
+  "rello-quick-action-realtor-partners",
+  "rello-quick-action-past-clients",
+  "rello-quick-action-send-homeowner-hub",
+] as const);
+
+export type RelloSurfaceSlug = (typeof RELLO_SURFACE_SLUGS)[number];
+
+/**
+ * Harvest Home surface keys decided by Rello's plan access.
+ *
+ * - `hh-lead-buying` — Discover search and unlock, credit purchase and "Share
+ *   with partner" in Harvest Home. Open on every FULL plan (no plan has to list
+ *   it) and absent from the Home Insight grants (spec §4 L-7).
+ *
+ * Added v0.15.0.
+ */
+export const HH_SURFACE_SLUGS = Object.freeze(["hh-lead-buying"] as const);
+
+export type HhSurfaceSlug = (typeof HH_SURFACE_SLUGS)[number];
+
+/** Every surface key `isSurfaceOpen` answers for. Derived; do not hand-maintain. */
+export const SURFACE_SLUGS = Object.freeze([...RELLO_SURFACE_SLUGS, ...HH_SURFACE_SLUGS] as const);
+
+export type SurfaceSlug = RelloSurfaceSlug | HhSurfaceSlug;
+
+const RELLO_SURFACE_SET: ReadonlySet<string> = new Set<string>(RELLO_SURFACE_SLUGS);
+const SURFACE_SET: ReadonlySet<string> = new Set<string>(SURFACE_SLUGS);
+
+/** True only for an exact Rello surface key (no trimming, no case folding). */
+export function isRelloSurfaceSlug(value: unknown): value is RelloSurfaceSlug {
+  return typeof value === "string" && RELLO_SURFACE_SET.has(value);
+}
+
+/** True only for an exact surface key, Rello's or Harvest Home's. */
+export function isSurfaceSlug(value: unknown): value is SurfaceSlug {
+  return typeof value === "string" && SURFACE_SET.has(value);
+}
+
+/**
+ * The Home Insight plan's grants: the one copy (spec §4 L-13). Rello's plan
+ * seed reads it; nothing else lists these keys.
+ *
+ * Never contains `rello-full`. The Lead Intelligence, Team, Audit Log and
+ * Custom Domain settings tabs stay locked (prospectus :303, KA ruling
+ * 2026-11-28 HA-1r); `rello-team-settings-brand` opens Brand & White-Label only.
+ * Lead buying (`hh-lead-buying`) is not on the plan.
+ *
+ * Frozen: a consumer cannot add a grant at runtime.
+ *
+ * Added v0.15.0.
+ */
+export const HOME_INSIGHT_PLAN_GRANTS = Object.freeze([
+  "rello-dashboard",
+  "rello-today",
+  "rello-today-tasks",
+  "rello-leads-all",
+  "rello-leads-home-insight",
+  "rello-team-realtor-prospects",
+  "rello-team-performance",
+  "rello-settings",
+  "rello-team-settings-brand",
+  "rello-team-settings-billing",
+  "rello-apps-the-oven",
+  "rello-calendar",
+  "rello-quick-action-create-lead",
+  "rello-quick-action-all-leads",
+  "rello-quick-action-realtor-partners",
+  "rello-quick-action-past-clients",
+  "rello-quick-action-send-homeowner-hub",
+] as const satisfies readonly Exclude<RelloSurfaceSlug, "rello-full">[]);
+
+export type HomeInsightPlanGrant = (typeof HOME_INSIGHT_PLAN_GRANTS)[number];
+
+/**
+ * A tenant's resolved plan access, as Rello's resolver returns it (spec §6
+ * X-01). `grants` may be a Set or an array, so the resolver's
+ * `ReadonlySet<RelloSurfaceSlug>` and a JSON-decoded `string[]` both fit.
+ * `trialEndsAt` is informational here: the resolver already answers FULL
+ * while a trial runs.
+ */
+export type SurfaceAccess =
+  | { readonly state: "known"; readonly mode: "FULL" }
+  | {
+      readonly state: "known";
+      readonly mode: "GRANTS_ONLY";
+      readonly grants: ReadonlySet<string> | readonly string[];
+      readonly trialEndsAt?: Date | string | null;
+    }
+  | { readonly state: "unknown"; readonly reason: string };
+
+/**
+ * Is this surface open for this access? Pure: FULL opens every surface;
+ * GRANTS_ONLY opens exactly the keys it grants.
+ *
+ * Returns `false` for `state: "unknown"` and for anything malformed. `false`
+ * on unknown means "not known to be open", NOT "locked": a caller that can tell
+ * the difference must check `access.state` itself and treat unknown as unknown
+ * (spec §12.1: a granted surface still renders, a `rello-full` surface answers
+ * 503 `access_unknown` with a retry, never a lock and never open).
+ */
+export function isSurfaceOpen(access: SurfaceAccess | null | undefined, key: SurfaceSlug): boolean {
+  if (access === null || typeof access !== "object") return false;
+  if (access.state !== "known") return false;
+  if (access.mode === "FULL") return true;
+  if (access.mode !== "GRANTS_ONLY") return false;
+  const grants: unknown = access.grants;
+  // Array first: a string also has `includes`, and would match a substring.
+  if (Array.isArray(grants)) return grants.includes(key);
+  if (grants instanceof Set) return grants.has(key);
+  return false;
+}
+
+/**
  * Canonical feature slugs a Rello `Plan` may grant in its `grants` column.
  * A feature is narrower than an app: it names a part of an app a plan buys,
  * not an App row, so it is deliberately NOT in `PLATFORM_SLUGS` and never
@@ -356,9 +506,16 @@ export type SystemTenantId = typeof PLATFORM_TENANT_ID | typeof GROWTH_HOUSE_TEN
  *   Rates setup (lender + comp) without the Rate Widget, which stays locked as
  *   the upgrade to `pfp-rates` (Kelly D64, the $9 Signature plan). A tenant
  *   holding both resolves to Rates.
+ * - every surface key (`SURFACE_SLUGS`: `RELLO_SURFACE_SLUGS` then
+ *   `hh-lead-buying`), so a Home Insight plan's grants pass the same
+ *   validation (Home Insight HI-01, v0.15.0).
  *
  * Rello's plan editor validates `grants` against this list (an off-list slug
  * is a 400), so adding a feature is a release of this package first.
+ *
+ * ORDER IS LOAD-BEARING: consumers read the first five by index
+ * (PathfinderPro `FEATURE_SLUGS[3]` / `[4]`, Rello tests destructuring
+ * `[RATES, FULL, CYR]`). Append new slugs; never insert before them.
  */
 export const FEATURE_SLUGS = [
   "pfp-rates",
@@ -366,6 +523,7 @@ export const FEATURE_SLUGS = [
   "check-your-rate",
   "refi-radar",
   "pfp-signature",
+  ...SURFACE_SLUGS,
 ] as const;
 
 export type FeatureSlug = (typeof FEATURE_SLUGS)[number];
@@ -421,3 +579,234 @@ export const PLATFORM_BRAND = Object.freeze({
 } as const);
 
 export type PlatformBrand = typeof PLATFORM_BRAND;
+
+// ---------------------------------------------------------------------------
+// Pro categories — the one list of homeowner pros (Home Insight HI-01, part B §4g)
+// ---------------------------------------------------------------------------
+
+/**
+ * The pro category groups, in the order the Pros screen shows them (mockup 08).
+ * `key` is internal; `label` is the group heading a person sees.
+ */
+export const PRO_CATEGORY_GROUPS = Object.freeze([
+  Object.freeze({ key: "real-estate-pros", label: "Real estate pros" }),
+  Object.freeze({ key: "buying-and-selling", label: "Buying and selling" }),
+  Object.freeze({ key: "home-improvement", label: "Home improvement and upkeep" }),
+  Object.freeze({ key: "money-and-planning", label: "Money and planning" }),
+  Object.freeze({ key: "moving-and-settling-in", label: "Moving and settling in" }),
+  Object.freeze({ key: "specialty", label: "Specialty" }),
+] as const);
+
+export type ProCategoryGroupKey = (typeof PRO_CATEGORY_GROUPS)[number]["key"];
+
+/**
+ * Source rows for `PRO_CATEGORIES`. Values are Newsletter Studio's
+ * `PartnerType` spellings (NS stores them in live rows) plus
+ * `PROPERTY_MANAGER` (KA ruling 2026-11-28: Specialty, not a settlement
+ * service). Labels are mockup 08's. `settlementService` marks the decided
+ * RESPA list (part B §4f); PEST_CONTROL is not on it.
+ */
+const PRO_CATEGORY_ROWS = [
+  { value: "REALTOR", label: "Realtor", group: "real-estate-pros", settlementService: true },
+  { value: "MLO", label: "Mortgage loan officer", group: "real-estate-pros", settlementService: true },
+  { value: "INSPECTOR", label: "Home inspector", group: "real-estate-pros", settlementService: true },
+  { value: "TITLE", label: "Title", group: "real-estate-pros", settlementService: true },
+  { value: "INSURANCE", label: "Insurance", group: "real-estate-pros", settlementService: true },
+  { value: "HANDYMAN", label: "Handyman", group: "real-estate-pros", settlementService: false },
+  { value: "APPRAISER", label: "Appraiser", group: "buying-and-selling", settlementService: true },
+  { value: "HOME_WARRANTY", label: "Home warranty", group: "buying-and-selling", settlementService: true },
+  { value: "ESCROW_OFFICER", label: "Escrow officer", group: "buying-and-selling", settlementService: true },
+  { value: "REAL_ESTATE_ATTORNEY", label: "Real estate attorney", group: "buying-and-selling", settlementService: true },
+  { value: "SURVEYOR", label: "Surveyor", group: "buying-and-selling", settlementService: true },
+  { value: "GENERAL_CONTRACTOR", label: "General contractor", group: "home-improvement", settlementService: false },
+  { value: "LANDSCAPER", label: "Landscaper", group: "home-improvement", settlementService: false },
+  { value: "INTERIOR_DESIGNER", label: "Interior designer", group: "home-improvement", settlementService: false },
+  { value: "PAINTER", label: "Painter", group: "home-improvement", settlementService: false },
+  { value: "ROOFER", label: "Roofer", group: "home-improvement", settlementService: false },
+  { value: "ELECTRICIAN", label: "Electrician", group: "home-improvement", settlementService: false },
+  { value: "PLUMBER", label: "Plumber", group: "home-improvement", settlementService: false },
+  { value: "HVAC_TECHNICIAN", label: "HVAC technician", group: "home-improvement", settlementService: false },
+  { value: "POOL_SERVICE", label: "Pool service", group: "home-improvement", settlementService: false },
+  { value: "PEST_CONTROL", label: "Pest control", group: "home-improvement", settlementService: false },
+  { value: "CLEANING_SERVICE", label: "Cleaning service", group: "home-improvement", settlementService: false },
+  { value: "FINANCIAL_PLANNER", label: "Financial planner", group: "money-and-planning", settlementService: false },
+  { value: "CPA_TAX_ADVISOR", label: "CPA / tax advisor", group: "money-and-planning", settlementService: false },
+  { value: "ESTATE_PLANNING_ATTORNEY", label: "Estate planning attorney", group: "money-and-planning", settlementService: true },
+  { value: "MOVING_COMPANY", label: "Moving company", group: "moving-and-settling-in", settlementService: false },
+  { value: "STORAGE_FACILITY", label: "Storage facility", group: "moving-and-settling-in", settlementService: false },
+  { value: "LOCKSMITH", label: "Locksmith", group: "moving-and-settling-in", settlementService: false },
+  { value: "PHOTOGRAPHER", label: "Photographer", group: "specialty", settlementService: false },
+  { value: "SOLAR_INSTALLER", label: "Solar installer", group: "specialty", settlementService: false },
+  { value: "STRUCTURAL_ENGINEER", label: "Structural engineer", group: "specialty", settlementService: false },
+  { value: "SEPTIC_WELL_INSPECTOR", label: "Septic / well inspector", group: "specialty", settlementService: true },
+  { value: "CREDIT_REPAIR", label: "Credit repair", group: "specialty", settlementService: false },
+  { value: "BANKRUPTCY_ATTORNEY", label: "Bankruptcy attorney", group: "specialty", settlementService: true },
+  { value: "DIVORCE_ATTORNEY", label: "Divorce attorney", group: "specialty", settlementService: true },
+  { value: "DOWN_PAYMENT_ASSISTANCE", label: "Down payment assistance", group: "specialty", settlementService: false },
+  { value: "HUD_COUNSELOR", label: "HUD counselor", group: "specialty", settlementService: false },
+  { value: "BUILDER", label: "Builder", group: "specialty", settlementService: false },
+  { value: "PROPERTY_MANAGER", label: "Property manager", group: "specialty", settlementService: false },
+  { value: "OTHER", label: "Other", group: "specialty", settlementService: false },
+] as const satisfies readonly {
+  value: string;
+  label: string;
+  group: ProCategoryGroupKey;
+  settlementService: boolean;
+}[];
+
+export type ProCategory = (typeof PRO_CATEGORY_ROWS)[number]["value"];
+
+/**
+ * The six trade tabs on the homeowner page's pros card, in tab order. Every
+ * other category shows under More.
+ */
+export const HUB_TRADE_TABS = Object.freeze([
+  "PLUMBER",
+  "ELECTRICIAN",
+  "HVAC_TECHNICIAN",
+  "ROOFER",
+  "LANDSCAPER",
+  "HANDYMAN",
+] as const satisfies readonly ProCategory[]);
+
+export interface ProCategoryEntry {
+  readonly value: ProCategory;
+  /** The category name a person sees. */
+  readonly label: string;
+  readonly group: ProCategoryGroupKey;
+  /** On the decided RESPA settlement-service list: the Pros screen shows its heads-up. Never a gate. */
+  readonly settlementService: boolean;
+  /** One of `HUB_TRADE_TABS` (derived from it, so the two cannot disagree). */
+  readonly hubTab: boolean;
+}
+
+const HUB_TRADE_TAB_SET: ReadonlySet<string> = new Set<string>(HUB_TRADE_TABS);
+
+/**
+ * Every pro category (40), grouped and in mockup order. The Oven's
+ * `ServiceProviderCategory`, NS `PartnerType`, Home Scout's pros card and
+ * Rello's wizard all follow this list.
+ */
+export const PRO_CATEGORIES: readonly ProCategoryEntry[] = Object.freeze(
+  PRO_CATEGORY_ROWS.map((row) => Object.freeze({ ...row, hubTab: HUB_TRADE_TAB_SET.has(row.value) })),
+);
+
+/** The category values alone, in the same order. */
+export const PRO_CATEGORY_VALUES: readonly ProCategory[] = Object.freeze(PRO_CATEGORY_ROWS.map((row) => row.value));
+
+const PRO_CATEGORY_SET: ReadonlySet<string> = new Set<string>(PRO_CATEGORY_VALUES);
+
+/** True only for an exact category value (no trimming, no case folding, no aliases). */
+export function isProCategory(value: unknown): value is ProCategory {
+  return typeof value === "string" && PRO_CATEGORY_SET.has(value);
+}
+
+/**
+ * Old spellings → current value. The Oven renames `HVAC` and `CLEANER` in its
+ * enum (rows kept); a reader that meets an old value maps it here.
+ */
+export const PRO_CATEGORY_ALIASES = Object.freeze({
+  HVAC: "HVAC_TECHNICIAN",
+  CLEANER: "CLEANING_SERVICE",
+} as const satisfies Readonly<Record<string, ProCategory>>);
+
+/**
+ * A stored category value → its current `ProCategory`: itself, or the value an
+ * old spelling maps to. Anything else is `null` (exact match; no trimming or
+ * case folding, because stored values are enum spellings).
+ */
+export function normalizeProCategory(raw: unknown): ProCategory | null {
+  if (typeof raw !== "string") return null;
+  if (PRO_CATEGORY_SET.has(raw)) return raw as ProCategory;
+  if (Object.prototype.hasOwnProperty.call(PRO_CATEGORY_ALIASES, raw)) {
+    return PRO_CATEGORY_ALIASES[raw as keyof typeof PRO_CATEGORY_ALIASES];
+  }
+  return null;
+}
+
+/**
+ * Content Engine `HomeCareHint.category` → the pro who does that work, for the
+ * care tip that names a pro (part B §4h). Every other care category names none.
+ */
+export const HOME_CARE_TO_PRO_CATEGORY = Object.freeze({
+  plumbing: "PLUMBER",
+  hvac: "HVAC_TECHNICIAN",
+  electrical: "ELECTRICIAN",
+  landscaping: "LANDSCAPER",
+  irrigation: "LANDSCAPER",
+  roof: "ROOFER",
+  foundation: "STRUCTURAL_ENGINEER",
+} as const satisfies Readonly<Record<string, ProCategory>>);
+
+/** A care-tip category → its pro category, or `null` when it names none. Trims and lowercases. */
+export function proCategoryForHomeCare(category: unknown): ProCategory | null {
+  if (typeof category !== "string") return null;
+  const key = category.trim().toLowerCase();
+  if (!Object.prototype.hasOwnProperty.call(HOME_CARE_TO_PRO_CATEGORY, key)) return null;
+  return HOME_CARE_TO_PRO_CATEGORY[key as keyof typeof HOME_CARE_TO_PRO_CATEGORY];
+}
+
+// ---------------------------------------------------------------------------
+// Nurture streams, hub domains, mortgage data sources (Home Insight HI-01)
+// ---------------------------------------------------------------------------
+
+/** Nurture stream slugs a person can opt out of on their own (lowercase, hyphenated). */
+export const NURTURE_STREAM_SLUGS = Object.freeze(["home-insight-monthly"] as const);
+
+export type NurtureStreamSlug = (typeof NURTURE_STREAM_SLUGS)[number];
+
+export function isNurtureStreamSlug(value: unknown): value is NurtureStreamSlug {
+  return typeof value === "string" && (NURTURE_STREAM_SLUGS as readonly string[]).includes(value);
+}
+
+/**
+ * The domain a tenant's homeowner pages are served on. Rello's and Home
+ * Scout's `HubDomain` Prisma enums mirror this list; `THEHOMESCOUT` is the
+ * default. `HOMEINSIGHT` is also what marks a Home Insight account (spec §4 L-2).
+ */
+export const HUB_DOMAINS = Object.freeze(["THEHOMESCOUT", "HOMEINSIGHT"] as const);
+
+export type HubDomain = (typeof HUB_DOMAINS)[number];
+
+export function isHubDomain(value: unknown): value is HubDomain {
+  return typeof value === "string" && (HUB_DOMAINS as readonly string[]).includes(value);
+}
+
+/**
+ * Where one mortgage field's value came from (part C D-1; spec §4 L-8).
+ * Property Engine's `MortgageDataSource` Prisma enum mirrors this list.
+ *
+ * - `LOS_UPLOAD` — the loan officer's own loan-system export (past clients)
+ * - `LIST_UPLOAD` — a purchased or prospecting list file
+ * - `VENDOR_RECORDED` — a provider, from recorded documents
+ * - `VENDOR_ESTIMATED` — a provider's own model
+ * - `MARKET_ESTIMATE` — PE's closing-month Freddie Mac estimate
+ * - `AMORTIZED` — balance computed from amount, rate, term and date
+ * - `HOMEOWNER` — the homeowner's own correction
+ * - `BATCHDATA_LEGACY` — rows written before field sources existed
+ */
+export const MORTGAGE_DATA_SOURCES = Object.freeze([
+  "LOS_UPLOAD",
+  "LIST_UPLOAD",
+  "VENDOR_RECORDED",
+  "VENDOR_ESTIMATED",
+  "MARKET_ESTIMATE",
+  "AMORTIZED",
+  "HOMEOWNER",
+  "BATCHDATA_LEGACY",
+] as const);
+
+export type MortgageDataSource = (typeof MORTGAGE_DATA_SOURCES)[number];
+
+export function isMortgageDataSource(value: unknown): value is MortgageDataSource {
+  return typeof value === "string" && (MORTGAGE_DATA_SOURCES as readonly string[]).includes(value);
+}
+
+/**
+ * The source of any figure on the homeowner page: a mortgage source, or
+ * `VALUATION` for the home's value and equity (spec §4 L-8). One vocabulary;
+ * PE's mortgage enum holds only `MORTGAGE_DATA_SOURCES`.
+ */
+export const HOME_FIGURE_SOURCES = Object.freeze([...MORTGAGE_DATA_SOURCES, "VALUATION"] as const);
+
+export type HomeFigureSource = (typeof HOME_FIGURE_SOURCES)[number];

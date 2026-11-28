@@ -73,6 +73,29 @@ if (isEngineSlug(value))    { /* value is EngineSlug */ }
 | `PLATFORM_BRAND` | frozen `as const` object | — | Any visible product name, domain, support address or logo URL (v0.14.0) |
 | `PlatformBrand` | `type` | — | The type of `PLATFORM_BRAND` |
 
+## Home Insight exports (v0.15.0)
+
+Added for Home Insight (spec `RELLO-HOME-INSIGHT/_SPEC-FEATURE.md`, unit HI-01). Additive: nothing changes for a consumer until it re-pins.
+
+| Export | Kind | Use when |
+|---|---|---|
+| `RELLO_SURFACE_SLUGS` / `RelloSurfaceSlug` / `isRelloSurfaceSlug` | frozen list (22), type, guard | The key each hub surface carries. `rello-full` is the key of every surface not named, including later ones. Internal identifiers: never shown to customers. |
+| `HH_SURFACE_SLUGS` | frozen list (`hh-lead-buying`) | Harvest Home lead buying, decided by Rello's plan access. |
+| `SURFACE_SLUGS` / `SurfaceSlug` / `isSurfaceSlug` | derived list, type, guard | Every key `isSurfaceOpen` answers for. |
+| `HOME_INSIGHT_PLAN_GRANTS` | frozen list (17) | The Home Insight plan's grants, the one copy. Never contains `rello-full`. |
+| `isSurfaceOpen(access, key)` / `SurfaceAccess` | pure function, type | `FULL` → open; `GRANTS_ONLY` → open only if granted; `unknown` or malformed → `false`. `false` on unknown is not "locked": check `access.state` and treat unknown as unknown. |
+| `PRO_CATEGORIES` / `PRO_CATEGORY_VALUES` / `ProCategory` / `isProCategory` | 40 entries `{value, label, group, settlementService, hubTab}` | The one pro category list (NS `PartnerType` + `PROPERTY_MANAGER`). The Oven, Home Scout, NS and Rello's wizard follow it. |
+| `PRO_CATEGORY_GROUPS` | 6 `{key, label}` | Group headings, in screen order. |
+| `PRO_CATEGORY_ALIASES` / `normalizeProCategory` | map, function | Old Oven spellings (`HVAC`, `CLEANER`) → current values. |
+| `HOME_CARE_TO_PRO_CATEGORY` / `proCategoryForHomeCare` | map, function | Content Engine care-tip category → the pro who does it. |
+| `HUB_TRADE_TABS` | 6 values | The homeowner page's trade tabs, in order. |
+| `NURTURE_STREAM_SLUGS` / `isNurtureStreamSlug` | `["home-insight-monthly"]` | Stream a person can opt out of. |
+| `HUB_DOMAINS` / `HubDomain` / `isHubDomain` | `["THEHOMESCOUT","HOMEINSIGHT"]` | Rello's and Home Scout's `HubDomain` enums mirror it. |
+| `MORTGAGE_DATA_SOURCES` / `MortgageDataSource` / `isMortgageDataSource` | 8 values | Where one mortgage field came from; PE's enum mirrors it. |
+| `HOME_FIGURE_SOURCES` / `HomeFigureSource` | 9 values | `MORTGAGE_DATA_SOURCES` plus `VALUATION` (value and equity). |
+
+The surface keys are appended to `FEATURE_SLUGS` after the five gateway features. **The first five keep their indexes**: PathfinderPro and Rello read `FEATURE_SLUGS[3]` / `[4]` by position.
+
 ## Slug resolution — how `normalizeSlug` / `tryNormalizeSlug` decide
 
 Both functions share one resolution body. `normalizeSlug` adds a `console.warn` when a **present but unrecognized** value fails to resolve; `tryNormalizeSlug` is silent. Missing / empty / whitespace-only input returns `null` silently from both — an absent value is not a drift signal.

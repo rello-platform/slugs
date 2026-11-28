@@ -1,0 +1,58 @@
+// Fixture: Newsletter-Studio prisma/schema.prisma lines 34-86 at 25f8fcc20de42c4ff85994d7bbbd7ffa16c19e3f,
+// copied byte for byte (sha256 of the copied lines: 2dfd48b47a35b965c71b33b597eebeb0a0db52abeb4142d1581df7552a5d3c8d).
+// Re-copy it from NS when NS changes PartnerType; never edit it by hand.
+export const NS_PARTNER_TYPE_ENUM_25F8FCC2 = String.raw`
+enum PartnerType {
+  // Real Estate Professionals
+  REALTOR
+  MLO
+  INSPECTOR
+  TITLE
+  INSURANCE
+  HANDYMAN
+
+  // Transaction-Related
+  APPRAISER
+  HOME_WARRANTY
+  ESCROW_OFFICER
+  REAL_ESTATE_ATTORNEY
+  SURVEYOR
+
+  // Home Improvement & Maintenance
+  GENERAL_CONTRACTOR
+  LANDSCAPER
+  INTERIOR_DESIGNER
+  PAINTER
+  ROOFER
+  ELECTRICIAN
+  PLUMBER
+  HVAC_TECHNICIAN
+  POOL_SERVICE
+  PEST_CONTROL
+  CLEANING_SERVICE
+
+  // Financial & Professional
+  FINANCIAL_PLANNER
+  CPA_TAX_ADVISOR
+  ESTATE_PLANNING_ATTORNEY
+
+  // Moving & Settling In
+  MOVING_COMPANY
+  STORAGE_FACILITY
+  LOCKSMITH
+
+  // Specialty
+  PHOTOGRAPHER
+  SOLAR_INSTALLER
+  STRUCTURAL_ENGINEER
+  SEPTIC_WELL_INSPECTOR
+  CREDIT_REPAIR
+  BANKRUPTCY_ATTORNEY
+  DIVORCE_ATTORNEY
+  DOWN_PAYMENT_ASSISTANCE
+  HUD_COUNSELOR
+  BUILDER
+
+  OTHER
+}
+`;
